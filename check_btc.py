@@ -19,7 +19,7 @@ def read_last_ath():
         with open(ATH_FILE, 'r') as f:
             return float(f.read().strip())
     except (FileNotFoundError, ValueError):
-        return 118600  # Starting fallback ATH, adjust if you like
+        return 117000  # Starting fallback ATH, adjust if you like
 
 def write_new_ath(value):
     with open(ATH_FILE, 'w') as f:
