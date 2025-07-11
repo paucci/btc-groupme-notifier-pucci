@@ -39,7 +39,7 @@ def main():
     last_ath = read_last_ath()
 
     if current_price >= last_ath + MIN_INCREMENT:
-        post_to_groupme(f"🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (previous ATH: ${last_ath:,.2f})")
+        post_to_groupme(f"GENTLEMEN! It is my pleasure to inform you - 🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (previous ATH: ${last_ath:,.2f})")
         write_new_ath(current_price)
     else:
         print(f"BTC price ${current_price:,.2f} has not increased by ${MIN_INCREMENT} over last ATH ${last_ath:,.2f}")
