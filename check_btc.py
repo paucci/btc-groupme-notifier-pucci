@@ -3,6 +3,7 @@ import os
 
 GROUPME_BOT_ID = os.environ.get("GROUPME_BOT_ID")
 ATH_FILE = "last_ath.txt"
+MIN_INCREMENT = 100  # Notify only if price is at least $100 higher than last ATH
 
 def get_bitcoin_price_usd():
     url = "https://api.coingecko.com/api/v3/simple/price"
@@ -19,7 +20,7 @@ def read_last_ath():
         with open(ATH_FILE, 'r') as f:
             return float(f.read().strip())
     except (FileNotFoundError, ValueError):
-        return 117000  # Starting fallback ATH, adjust if you like
+        return 117582  # Starting fallback ATH
 
 def write_new_ath(value):
     with open(ATH_FILE, 'w') as f:
@@ -37,11 +38,11 @@ def main():
     current_price = get_bitcoin_price_usd()
     last_ath = read_last_ath()
 
-    if current_price > last_ath:
-        post_to_groupme(f"🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (old ATH was ${last_ath:,.2f})")
+    if current_price >= last_ath + MIN_INCREMENT:
+        post_to_groupme(f"🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (previous ATH: ${last_ath:,.2f})")
         write_new_ath(current_price)
     else:
-        print(f"BTC ${current_price:,.2f} is below ATH ${last_ath:,.2f}")
+        print(f"BTC price ${current_price:,.2f} has not increased by ${MIN_INCREMENT} over last ATH ${last_ath:,.2f}")
 
 if __name__ == "__main__":
     main()
