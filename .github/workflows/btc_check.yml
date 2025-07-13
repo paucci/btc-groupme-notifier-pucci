@@ -10,20 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout main branch
         uses: actions/checkout@v3
-
-      - name: Restore last ATH cache
-        uses: actions/cache@v3
-        id: cache-last-ath
         with:
-          path: last_ath.txt
-          key: btc-last-ath-${{ runner.os }}
-          restore-keys: |
-            btc-last-ath-${{ runner.os }}
-
-      - name: Show GitHub run number
-        run: echo "🚀 This is workflow run number:${{ github.run_number }}"
+          ref: main  # force checkout of main branch
 
       - name: Show contents of last_ath.txt before run
         run: |
@@ -51,8 +41,12 @@ jobs:
           echo "✅ Contents of last_ath.txt after run:"
           cat last_ath.txt || echo "⚠️ last_ath.txt does not exist"
 
-      - name: Save updated ATH cache
-        uses: actions/cache@v3
-        with:
-          path: last_ath.txt
-          key: btc-last-ath-${{ runner.os }}-${{ github.run_number }}
+      - name: Commit updated last_ath.txt to main branch
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git pull origin main
+          git add last_ath.txt
+          git commit -m "Update last_ath.txt with new ATH" || echo "No changes to commit"
+          git push origin main
+
