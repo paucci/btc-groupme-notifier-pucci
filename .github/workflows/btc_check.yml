@@ -2,7 +2,7 @@ name: Check BTC price and notify
 
 on:
   schedule:
-    - cron: "* * * * *" # every minute
+    - cron: "* * * * *"  # every minute
   workflow_dispatch:
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Restore last ATH cache
@@ -18,9 +18,17 @@ jobs:
       id: cache-last-ath
       with:
         path: last_ath.txt
-        key: btc-last-ath-${{ runner.os }}-${{ hashFiles('last_ath.txt') }}
+        key: btc-last-ath-${{ runner.os }}
         restore-keys: |
-          btc-last-ath-${{ runner.os }}-
+          btc-last-ath-${{ runner.os }}
+
+    - name: Show GitHub run number
+      run: echo "🚀 This is workflow run number: ${{ github.run_number }}"
+
+    - name: Show contents of last_ath.txt before run
+      run: |
+        echo "📈 Contents of last_ath.txt before run:"
+        cat last_ath.txt || echo "⚠️ last_ath.txt does not exist"
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -38,9 +46,13 @@ jobs:
       run: |
         python check_btc.py
 
+    - name: Show contents of last_ath.txt after run
+      run: |
+        echo "✅ Contents of last_ath.txt after run:"
+        cat last_ath.txt || echo "⚠️ last_ath.txt does not exist"
+
     - name: Save updated ATH cache
       uses: actions/cache@v3
       with:
         path: last_ath.txt
-        key: btc-last-ath-${{ runner.os }}-${{ hashFiles('last_ath.txt') }}
-
+        key: btc-last-ath-${{ runner.os }}-${{ github.run_number }}
