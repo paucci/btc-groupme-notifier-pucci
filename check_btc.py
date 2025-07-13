@@ -1,48 +1,70 @@
-import requests
 import os
+import requests
 
-GROUPME_BOT_ID = os.environ.get("GROUPME_BOT_ID")
 ATH_FILE = "last_ath.txt"
-MIN_INCREMENT = 100  # Notify only if price is at least $100 higher than last ATH
+INITIAL_ATH = 119265  # or set to 0 if you want
 
-def get_bitcoin_price_usd():
-    url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {
-        'ids': 'bitcoin',
-        'vs_currencies': 'usd'
-    }
-    response = requests.get(url, params=params)
-    data = response.json()
-    return data['bitcoin']['usd']
+GROUPME_BOT_ID = os.getenv("GROUPME_BOT_ID")
+
+def get_current_btc_price():
+    url = "https://api.coindesk.com/v1/bpi/currentprice/USD.json"
+    try:
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        return float(data["bpi"]["USD"]["rate"].replace(",", ""))
+    except Exception as e:
+        print(f"⚠️ Error fetching BTC price: {e}")
+        return None
+
+def notify_groupme(message):
+    if not GROUPME_BOT_ID:
+        print("⚠️ GROUPME_BOT_ID not set.")
+        return
+    payload = {"bot_id": GROUPME_BOT_ID, "text": message}
+    try:
+        response = requests.post("https://api.groupme.com/v3/bots/post", json=payload)
+        if response.status_code == 202:
+            print("✅ Successfully posted to GroupMe.")
+        else:
+            print(f"⚠️ Failed to post to GroupMe: {response.status_code}, {response.text}")
+    except Exception as e:
+        print(f"⚠️ Exception posting to GroupMe: {e}")
+
+def ensure_ath_file_exists():
+    if not os.path.exists(ATH_FILE):
+        with open(ATH_FILE, "w") as f:
+            f.write(str(INITIAL_ATH))
+        print(f"🚀 Created {ATH_FILE} with initial ATH of {INITIAL_ATH}.")
 
 def read_last_ath():
-    try:
-        with open(ATH_FILE, 'r') as f:
-            return float(f.read().strip())
-    except (FileNotFoundError, ValueError):
-        return 119265  # Starting fallback ATH
+    with open(ATH_FILE, "r") as f:
+        value = float(f.read().strip())
+    return value
 
 def write_new_ath(value):
-    with open(ATH_FILE, 'w') as f:
-        f.write(f"{value}")
-
-def post_to_groupme(message):
-    url = "https://api.groupme.com/v3/bots/post"
-    payload = {
-        "bot_id": GROUPME_BOT_ID,
-        "text": message
-    }
-    requests.post(url, json=payload)
+    with open(ATH_FILE, "w") as f:
+        f.write(str(value))
+    print(f"✍️ Updated {ATH_FILE} to {value}.")
 
 def main():
-    current_price = get_bitcoin_price_usd()
+    ensure_ath_file_exists()
     last_ath = read_last_ath()
+    print(f"📈 Last recorded ATH: ${last_ath}")
 
-    if current_price >= last_ath + MIN_INCREMENT:
-        post_to_groupme(f"GENTLEMEN! It is my pleasure to inform you - 🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (previous ATH: ${last_ath:,.2f})")
+    current_price = get_current_btc_price()
+    if current_price is None:
+        print("❌ Could not get current BTC price, exiting.")
+        return
+
+    print(f"💰 Current BTC price: ${current_price}")
+
+    if current_price > last_ath + 100:
+        message = f"🚀 New BTC ATH! Price is now ${current_price}, beating last ATH of ${last_ath}."
+        notify_groupme(message)
         write_new_ath(current_price)
     else:
-        print(f"BTC price ${current_price:,.2f} has not increased by ${MIN_INCREMENT} over last ATH ${last_ath:,.2f}")
+        print(f"ℹ️ No new ATH. Needs to beat ${last_ath + 100}.")
 
 if __name__ == "__main__":
     main()
+
