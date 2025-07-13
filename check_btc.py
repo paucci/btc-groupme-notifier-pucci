@@ -2,7 +2,7 @@ import os
 import requests
 
 ATH_FILE = "last_ath.txt"
-INITIAL_ATH = 119261  # your starting ATH
+INITIAL_ATH = 118600  # your starting ATH
 MIN_INCREMENT = 100   # minimum increment to notify
 
 GROUPME_BOT_ID = os.getenv("GROUPME_BOT_ID")
@@ -17,7 +17,7 @@ def get_bitcoin_price_usd():
     data = response.json()
     return float(data['bitcoin']['usd'])
 
-def notify_groupme(message):
+def post_to_groupme(message):
     if not GROUPME_BOT_ID:
         print("⚠️ GROUPME_BOT_ID not set.")
         return
@@ -59,9 +59,8 @@ def main():
 
     print(f"💰 Current BTC price: ${current_price}")
 
-    if current_price > last_ath + MIN_INCREMENT:
-        message = f"🚀 New BTC ATH! Price is now ${current_price}, beating last ATH of ${last_ath}."
-        notify_groupme(message)
+    if current_price >= last_ath + MIN_INCREMENT:
+        post_to_groupme(f"GENTLEMEN! It is my pleasure to inform you - 🚀 New Bitcoin all-time high! 🎉 Price: ${current_price:,.2f} (previous ATH: ${last_ath:,.2f})")
         write_new_ath(current_price)
     else:
         print(f"ℹ️ No new ATH. Needs to beat ${last_ath + MIN_INCREMENT}.")
