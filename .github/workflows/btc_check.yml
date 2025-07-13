@@ -13,7 +13,8 @@ jobs:
       - name: Checkout main branch
         uses: actions/checkout@v3
         with:
-          ref: main  # force checkout of main branch
+          ref: main
+          token: ${{ secrets.GH_PAT }}   # Use your personal access token here
 
       - name: Show contents of last_ath.txt before run
         run: |
@@ -49,4 +50,3 @@ jobs:
           git add last_ath.txt
           git commit -m "Update last_ath.txt with new ATH" || echo "No changes to commit"
           git push origin main
-
