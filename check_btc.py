@@ -2,19 +2,20 @@ import os
 import requests
 
 ATH_FILE = "last_ath.txt"
-INITIAL_ATH = 119265  # or set to 0 if you want
+INITIAL_ATH = 119261  # your starting ATH
+MIN_INCREMENT = 100   # minimum increment to notify
 
 GROUPME_BOT_ID = os.getenv("GROUPME_BOT_ID")
 
-def get_current_btc_price():
-    url = "https://api.coindesk.com/v1/bpi/currentprice/USD.json"
-    try:
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        return float(data["bpi"]["USD"]["rate"].replace(",", ""))
-    except Exception as e:
-        print(f"⚠️ Error fetching BTC price: {e}")
-        return None
+def get_bitcoin_price_usd():
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        'ids': 'bitcoin',
+        'vs_currencies': 'usd'
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    return float(data['bitcoin']['usd'])
 
 def notify_groupme(message):
     if not GROUPME_BOT_ID:
@@ -38,8 +39,7 @@ def ensure_ath_file_exists():
 
 def read_last_ath():
     with open(ATH_FILE, "r") as f:
-        value = float(f.read().strip())
-    return value
+        return float(f.read().strip())
 
 def write_new_ath(value):
     with open(ATH_FILE, "w") as f:
@@ -51,19 +51,20 @@ def main():
     last_ath = read_last_ath()
     print(f"📈 Last recorded ATH: ${last_ath}")
 
-    current_price = get_current_btc_price()
-    if current_price is None:
-        print("❌ Could not get current BTC price, exiting.")
+    try:
+        current_price = get_bitcoin_price_usd()
+    except Exception as e:
+        print(f"⚠️ Error fetching BTC price: {e}")
         return
 
     print(f"💰 Current BTC price: ${current_price}")
 
-    if current_price > last_ath + 100:
+    if current_price > last_ath + MIN_INCREMENT:
         message = f"🚀 New BTC ATH! Price is now ${current_price}, beating last ATH of ${last_ath}."
         notify_groupme(message)
         write_new_ath(current_price)
     else:
-        print(f"ℹ️ No new ATH. Needs to beat ${last_ath + 100}.")
+        print(f"ℹ️ No new ATH. Needs to beat ${last_ath + MIN_INCREMENT}.")
 
 if __name__ == "__main__":
     main()
