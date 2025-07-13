@@ -23,7 +23,7 @@ jobs:
             btc-last-ath-${{ runner.os }}
 
       - name: Show GitHub run number
-        run: echo "🚀 This is workflow run number: ${{ github.run_number }}"
+        run: echo "🚀 This is workflow run number:${{ github.run_number }}"
 
       - name: Show contents of last_ath.txt before run
         run: |
