@@ -7,15 +7,22 @@ MIN_INCREMENT = 100   # minimum increment to notify
 
 GROUPME_BOT_ID = os.getenv("GROUPME_BOT_ID")
 
+#def get_bitcoin_price_usd():
+ #   url = "https://api.coingecko.com/api/v3/simple/price"
+ #   params = {
+  #      'ids': 'bitcoin',
+  #      'vs_currencies': 'usd'
+  #  }
+  #  response = requests.get(url, params=params)
+  #  data = response.json()
+   # return float(data['bitcoin']['usd'])
+
 def get_bitcoin_price_usd():
-    url = "https://api.coingecko.com/api/v3/simple/price"
-    params = {
-        'ids': 'bitcoin',
-        'vs_currencies': 'usd'
-    }
-    response = requests.get(url, params=params)
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin"
+    response = requests.get(url)
     data = response.json()
-    return float(data['bitcoin']['usd'])
+    return float(data["market_data"]["ath"]["usd"])   
+
 
 def post_to_groupme(message):
     if not GROUPME_BOT_ID:
